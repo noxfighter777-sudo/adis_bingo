@@ -4,7 +4,7 @@
   "description": "Grand Bingo Desktop Application - Professional Bingo Management System",
   "author": "Fira Tech Solutions",
   "license": "MIT",
-  "main": "main.js",
+  "main": "main.cjs",
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development tsx --env-file=.env server/index.ts",
@@ -190,7 +190,9 @@
     "asarUnpack": [
       "**/*.{mp3,wav,png,jpg,jpeg}",
       "public/**/*",
-      "prisma/**/*"
+      "prisma/**/*",
+      "node_modules/@prisma/**/*",
+      "node_modules/prisma/**/*"
     ],
     "extraResources": [
       {

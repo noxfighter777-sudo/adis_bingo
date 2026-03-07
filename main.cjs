@@ -3,6 +3,19 @@ const path = require('path');
 const { fork } = require('child_process');
 const fs = require('fs');
 
+// Global error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Prevent ugly error popup
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Prevent ugly error popup
+  process.exit(1);
+});
+
 // Single instance lock
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -31,7 +44,7 @@ if (!gotTheLock) {
       mainWindow.show();
     });
 
-    // Load the app
+    // Load app with proper ASAR pathing
     const startUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000' 
       : 'http://localhost:5000';
@@ -54,7 +67,7 @@ if (!gotTheLock) {
     });
   }
 
-  // Register custom protocol for secure asset loading
+  // Register custom protocol for secure asset loading with ASAR awareness
   function registerCustomProtocol() {
     protocol.registerSchemesAsPrivileged([
       {
