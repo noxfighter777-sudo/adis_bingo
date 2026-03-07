@@ -163,9 +163,9 @@
       "shortcutName": "GrandBingo"
     },
     "files": [
-      "dist/**/*",
       "main.cjs",
       "preload.js",
+      "dist/**/*",
       "prisma/schema.prisma",
       "prisma/migrations/**/*",
       "public/**/*",
