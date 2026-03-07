@@ -51,6 +51,7 @@ jobs:
 
     - name: Create Release Summary
       if: always()
+      shell: bash
       run: |
         echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

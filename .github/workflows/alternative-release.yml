@@ -55,6 +55,7 @@ jobs:
 
     - name: Create Build Info
       if: always()
+      shell: bash
       run: |
         echo "## Alternative Build Information" >> $GITHUB_STEP_SUMMARY
         echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
