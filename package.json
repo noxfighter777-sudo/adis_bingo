@@ -4,7 +4,7 @@
   "description": "Grand Bingo Desktop Application - Professional Bingo Management System",
   "author": "Fira Tech Solutions",
   "license": "MIT",
-  "main": "main.cjs",
+  "main": "dist/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development tsx --env-file=.env server/index.ts",
