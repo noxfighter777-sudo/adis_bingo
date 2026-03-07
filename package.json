@@ -155,6 +155,13 @@
       "icon": "client/public/go_bingo.png",
       "compression": "maximum"
     },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GrandBingo"
+    },
     "files": [
       "dist/**/*",
       "main.js",
@@ -173,7 +180,11 @@
       "!**/.github/**/*",
       "!**/attached_assets/**/*",
       "!**/data/**/*",
-      "!**/logs/**/*"
+      "!**/logs/**/*",
+      "!**/api/**/*",
+      "!**/client/src/**/*",
+      "!**/server/src/**/*",
+      "!**/scripts/**/*"
     ],
     "asar": true,
     "asarUnpack": [

@@ -40,14 +40,14 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifacts
-      if: github.event_name == 'release'
+      continue-on-error: true
       uses: actions/upload-artifact@v4
       with:
         name: GrandBingo-Desktop-Windows-${{ github.run_number }}
         path: release/*.exe
-        retention-days: 3
+        retention-days: 1
         compression-level: 9
-        if-no-files-found: error
+        if-no-files-found: warn
 
     - name: Create Release Summary
       if: always()
@@ -55,13 +55,43 @@ jobs:
       run: |
         echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Artifact Size**: $(ls -lh release/*.exe | awk '{print $5}' || echo 'No .exe file found')" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Run Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Download Instructions" >> $GITHUB_STEP_SUMMARY
-        echo "For builds without artifacts due to storage limits, please:" >> $GITHUB_STEP_SUMMARY
-        echo "1. Wait 6-12 hours for storage quota to reset" >> $GITHUB_STEP_SUMMARY
-        echo "2. Or manually build locally using: \`npm run electron:dist\`" >> $GITHUB_STEP_SUMMARY
+        
+        # List all files in release directory
+        echo "### Release Files" >> $GITHUB_STEP_SUMMARY
+        if [ -d "release" ]; then
+          for file in release/*; do
+            if [ -f "$file" ]; then
+              size=$(ls -lh "$file" | awk '{print $5}')
+              echo "- **$(basename "$file")**: $size" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+        else
+          echo "- No release files found" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Download Options" >> $GITHUB_STEP_SUMMARY
+        echo "1. **Artifacts**: Check the 'Actions' tab for downloadable artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "2. **Manual Build**: Run locally with \`npm run electron:dist\`" >> $GITHUB_STEP_SUMMARY
+        echo "3. **Alternative**: Use the 'Alternative Release' workflow" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Manual Build Instructions" >> $GITHUB_STEP_SUMMARY
+        echo "If artifacts are not available due to storage limits:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo 'git clone https://github.com/Fira-Tech-Solutions/grand_bingo.git' >> $GITHUB_STEP_SUMMARY
+        echo 'cd grand_bingo' >> $GITHUB_STEP_SUMMARY
+        echo 'git checkout new-exe' >> $GITHUB_STEP_SUMMARY
+        echo 'npm ci' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run build' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run build:server' >> $GITHUB_STEP_SUMMARY
+        echo 'npm run electron:dist' >> $GITHUB_STEP_SUMMARY
+        echo 'find release/ -name "*.exe" -ls' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
 
     - name: Release
       if: github.event_name == 'release'
