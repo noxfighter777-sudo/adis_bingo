@@ -42,9 +42,11 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: GrandBingo-Desktop
-        path: release/
-        retention-days: 30
+        name: GrandBingo-Desktop-Windows
+        path: release/*.exe
+        retention-days: 7
+        compression-level: 9
+        if-no-files-found: error
 
     - name: Release
       if: github.event_name == 'release'

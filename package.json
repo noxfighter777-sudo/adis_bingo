@@ -2,9 +2,9 @@
   "name": "rest-express",
   "version": "1.0.0",
   "description": "Grand Bingo Desktop Application - Professional Bingo Management System",
-  "main": "main.js",
   "author": "Fira Tech Solutions",
   "license": "MIT",
+  "main": "main.js",
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development tsx --env-file=.env server/index.ts",
@@ -147,16 +147,33 @@
     },
     "win": {
       "target": [
-        "portable"
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "client/public/go_bingo.png"
+      "icon": "client/public/go_bingo.png",
+      "compression": "maximum"
     },
     "files": [
       "dist/**/*",
       "main.js",
       "preload.js",
-      "prisma/**/*",
-      "public/**/*"
+      "prisma/schema.prisma",
+      "prisma/migrations/**/*",
+      "public/**/*",
+      "!**/node_modules/**/*",
+      "!**/*.ts",
+      "!**/*.map",
+      "!**/src/**/*",
+      "!**/test/**/*",
+      "!**/tests/**/*",
+      "!**/*.md",
+      "!**/.git/**/*",
+      "!**/.github/**/*",
+      "!**/attached_assets/**/*",
+      "!**/data/**/*",
+      "!**/logs/**/*"
     ],
     "asar": true,
     "asarUnpack": [
@@ -167,14 +184,15 @@
     "extraResources": [
       {
         "from": "prisma",
-        "to": "prisma"
+        "to": "prisma",
+        "filter": ["**/*"]
       },
       {
         "from": "public",
-        "to": "public"
+        "to": "public",
+        "filter": ["**/*.{mp3,wav,png,jpg,jpeg}"]
       }
     ],
     "npmRebuild": false
-  },
-  "main": "main.js"
+  }
 }
