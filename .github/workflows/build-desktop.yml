@@ -31,8 +31,38 @@ jobs:
     - name: Build frontend
       run: npm run build
 
+    - name: Verify frontend build
+      run: |
+        echo "Checking frontend build files..."
+        ls -la dist/public/
+        if [ ! -f "dist/public/index.html" ]; then
+          echo "ERROR: Frontend build failed - index.html not found"
+          exit 1
+        fi
+        echo "Frontend build verified successfully!"
+
     - name: Build server
       run: npm run build:server
+
+    - name: Verify server build
+      run: |
+        echo "Checking server build files..."
+        ls -la dist/
+        if [ ! -f "dist/index.js" ]; then
+          echo "ERROR: Server build failed - index.js not found"
+          exit 1
+        fi
+        echo "Server build verified successfully!"
+
+    - name: Verify all build files
+      run: |
+        echo "=== Build Verification Summary ==="
+        echo "Server build: dist/index.js ($(ls -lh dist/index.js | awk '{print $5}')"
+        echo "Frontend build: dist/public/index.html"
+        echo "CSS assets: $(find dist/public/assets -name '*.css' | wc -l) files"
+        echo "JS assets: $(find dist/public/assets -name '*.js' | wc -l) files"
+        echo "Media files: $(find dist/public -name '*.png' -o -name '*.jpg' -o -name '*.mp3' | wc -l) files"
+        echo "=================================="
 
     - name: Build Electron app
       run: npm run electron:dist

@@ -35,8 +35,28 @@ jobs:
     - name: Build frontend
       run: npm run build
 
+    - name: Verify frontend build
+      run: |
+        echo "Checking frontend build files..."
+        ls -la dist/public/
+        if [ ! -f "dist/public/index.html" ]; then
+          echo "ERROR: Frontend build failed - index.html not found"
+          exit 1
+        fi
+        echo "Frontend build verified successfully!"
+
     - name: Build server
       run: npm run build:server
+
+    - name: Verify server build
+      run: |
+        echo "Checking server build files..."
+        ls -la dist/
+        if [ ! -f "dist/index.js" ]; then
+          echo "ERROR: Server build failed - index.js not found"
+          exit 1
+        fi
+        echo "Server build verified successfully!"
 
     - name: Build Electron app
       run: npm run electron:dist
