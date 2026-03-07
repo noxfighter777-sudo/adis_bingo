@@ -76,10 +76,10 @@ jobs:
       continue-on-error: true
       uses: actions/upload-artifact@v4
       with:
-        name: GrandBingo-Desktop-Windows-${{ github.run_number }}
+        name: GrandBingo-Desktop-${{ github.run_number }}
         path: release/*.exe
-        retention-days: 1
-        compression-level: 9
+        retention-days: 0
+        compression-level: 0
         if-no-files-found: warn
 
     - name: Create Release Summary
@@ -91,6 +91,8 @@ jobs:
         echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Run Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: Fira-Tech-Solutions/grand_bingo" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # List all files in release directory
@@ -107,24 +109,39 @@ jobs:
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        echo "### Download Options" >> $GITHUB_STEP_SUMMARY
-        echo "1. **Artifacts**: Check the 'Actions' tab for downloadable artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "2. **Manual Build**: Run locally with \`npm run electron:dist\`" >> $GITHUB_STEP_SUMMARY
-        echo "3. **Alternative**: Use the 'Alternative Release' workflow" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔥 STORAGE QUOTA SOLUTIONS" >> $GITHUB_STEP_SUMMARY
+        echo "**Storage quota is exceeded - here are multiple ways to get the build:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
-        echo "### Manual Build Instructions" >> $GITHUB_STEP_SUMMARY
-        echo "If artifacts are not available due to storage limits:" >> $GITHUB_STEP_SUMMARY
+        echo "#### 1️⃣ ALTERNATIVE WORKFLOW" >> $GITHUB_STEP_SUMMARY
+        echo "- Go to: **Actions** tab → **Alternative Release** → **Run workflow**" >> $GITHUB_STEP_SUMMARY
+        echo "- This uploads with different naming to avoid quota conflicts" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 2️⃣ MANUAL BUILD (Recommended)" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo '# Clone the repository' >> $GITHUB_STEP_SUMMARY
         echo 'git clone https://github.com/Fira-Tech-Solutions/grand_bingo.git' >> $GITHUB_STEP_SUMMARY
         echo 'cd grand_bingo' >> $GITHUB_STEP_SUMMARY
         echo 'git checkout new-exe' >> $GITHUB_STEP_SUMMARY
+        echo '' >> $GITHUB_STEP_SUMMARY
+        echo '# Install dependencies and build' >> $GITHUB_STEP_SUMMARY
         echo 'npm ci' >> $GITHUB_STEP_SUMMARY
         echo 'npm run build' >> $GITHUB_STEP_SUMMARY
         echo 'npm run build:server' >> $GITHUB_STEP_SUMMARY
         echo 'npm run electron:dist' >> $GITHUB_STEP_SUMMARY
-        echo 'find release/ -name "*.exe" -ls' >> $GITHUB_STEP_SUMMARY
+        echo '' >> $GITHUB_STEP_SUMMARY
+        echo '# Find your .exe file' >> $GITHUB_STEP_SUMMARY
+        echo 'ls -la release/*.exe' >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 3️⃣ WAIT AND RETRY" >> $GITHUB_STEP_SUMMARY
+        echo "- GitHub storage quota resets every 6-12 hours" >> $GITHUB_STEP_SUMMARY
+        echo "- Try the main workflow again later when quota resets" >> $GITHUB_STEP_SUMMARY
+        echo "- Check the **Actions** tab for successful uploads" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 4️⃣ DIRECT DOWNLOAD" >> $GITHUB_STEP_SUMMARY
+        echo "- When artifacts upload successfully, they will appear in the **Actions** tab" >> $GITHUB_STEP_SUMMARY
+        echo "- Look for: \`GrandBingo-Desktop-${{ github.run_number }}\` artifact" >> $GITHUB_STEP_SUMMARY
+        echo "- Download size will be minimal (no compression, 0-day retention)" >> $GITHUB_STEP_SUMMARY
 
     - name: Release
       if: github.event_name == 'release'
