@@ -1,0 +1,55 @@
+name: Build Desktop Application
+
+on:
+  push:
+    branches: [ new-exe ]
+  pull_request:
+    branches: [ new-exe ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma client
+      run: npx prisma generate
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Build server
+      run: npm run build:server
+
+    - name: Build Electron app
+      run: npm run electron:dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: GrandBingo-Desktop
+        path: release/
+        retention-days: 30
+
+    - name: Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: release/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

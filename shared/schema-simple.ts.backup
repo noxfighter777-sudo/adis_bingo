@@ -1,0 +1,220 @@
+import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
+import { relations } from "drizzle-orm";
+
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").notNull().default('employee'), // 'admin' or 'employee'
+  name: text("name").notNull(),
+  email: text("email"),
+  accountNumber: text("account_number").unique(),
+  balance: decimal("balance", { precision: 12, scale: 2 }).default("0.00"),
+  isBlocked: boolean("is_blocked").default(false),
+  shopId: integer("shop_id").references(() => shops.id, { onDelete: "set null" }),
+  creditBalance: real("credit_balance").default(0),
+  referredBy: integer("referred_by"),
+  commissionRate: real("commission_rate").default(0),
+  createdAt: datetime("created_at").defaultNow(),
+});
+
+export const shops = sqliteTable("shops", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  adminId: integer("admin_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  profitMargin: decimal("profit_margin", { precision: 5, scale: 2 }).default("20.00"),
+  balance: decimal("balance", { precision: 12, scale: 2 }).default("0.00"),
+  isBlocked: boolean("is_blocked").default(false),
+  totalRevenue: decimal("total_revenue", { precision: 10, scale: 2 }).default("0.00"),
+  totalGames: integer("total_games").default(0),
+  totalPlayers: integer("total_players").default(0),
+  createdAt: datetime("created_at").defaultNow(),
+});
+
+export const games = sqliteTable("games", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  shopId: integer("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull(), // 'waiting', 'active', 'completed', 'paused'
+  prizePool: decimal("prize_pool", { precision: 10, scale: 2 }).default("0.00"),
+  entryFee: decimal("entry_fee", { precision: 10, scale: 2 }).notNull(),
+  calledNumbers: text("called_numbers").default("[]"),
+  winnerId: integer("winner_id").references(() => gamePlayers.id, { onDelete: "set null" }),
+  startedAt: datetime("started_at"),
+  completedAt: datetime("completed_at"),
+  isPaused: boolean("is_paused").default(false),
+  createdAt: datetime("created_at").defaultNow(),
+});
+
+export const gamePlayers = sqliteTable("game_players", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  gameId: integer("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  playerName: text("player_name").notNull(),
+  cartelaNumbers: text("cartela_numbers").notNull(),
+  entryFee: decimal("entry_fee", { precision: 10, scale: 2 }).notNull(),
+  isWinner: boolean("is_winner").default(false),
+  registeredAt: datetime("registered_at").defaultNow(),
+});
+
+export const transactions = sqliteTable("transactions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  gameId: integer("game_id").references(() => games.id, { onDelete: "cascade" }),
+  shopId: integer("shop_id").references(() => shops.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").references(() => users.id, { onDelete: "cascade" }),
+  adminId: integer("admin_id").references(() => users.id, { onDelete: "cascade" }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: text("type").notNull(), // 'entry_fee', 'prize_payout', 'admin_profit', 'credit_load'
+  description: text("description"),
+  createdAt: datetime("created_at").defaultNow(),
+});
+
+export const gameHistory = sqliteTable("game_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  gameId: integer("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  shopId: integer("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  totalCollected: decimal("total_collected", { precision: 10, scale: 2 }).notNull(),
+  prizeAmount: decimal("prize_amount", { precision: 10, scale: 2 }).notNull(),
+  adminProfit: decimal("admin_profit", { precision: 10, scale: 2 }).notNull(),
+  playerCount: integer("player_count").notNull(),
+  winnerName: text("winner_name"),
+  winningCartela: text("winning_cartela"),
+  completedAt: datetime("completed_at").defaultNow(),
+});
+
+export const cartelas = sqliteTable("cartelas", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  shopId: integer("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
+  adminId: integer("admin_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  cartelaNumber: integer("cartela_number").notNull(),
+  name: text("name").notNull(),
+  pattern: text("pattern").notNull(),
+  isHardcoded: boolean("is_hardcoded").default(false),
+  isActive: boolean("is_active").default(true),
+  isBooked: boolean("is_booked").default(false),
+  bookedBy: integer("booked_by").references(() => users.id, { onDelete: "set null" }),
+  gameId: integer("game_id").references(() => games.id, { onDelete: "set null" }),
+  createdAt: datetime("created_at").defaultNow(),
+  updatedAt: datetime("updated_at").defaultNow(),
+}, (table) => ({
+  shopCartelaUnique: table.shopId.unique(),
+}));
+
+export const dailyRevenueSummary = sqliteTable("daily_revenue_summary", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  date: text("date").notNull().unique(), // YYYY-MM-DD format
+  totalAdminRevenue: decimal("total_admin_revenue", { precision: 12, scale: 2 }).default("0.00"),
+  totalGamesPlayed: integer("total_games_played").default(0),
+  totalPlayersRegistered: integer("total_players_registered").default(0),
+  createdAt: datetime("created_at").defaultNow(),
+  updatedAt: datetime("updated_at").defaultNow(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ one, many }) => ({
+  shop: one(shops, {
+    fields: [users.shopId],
+    references: [shops.id],
+  }),
+  managedShop: one(shops, {
+    fields: [users.id],
+    references: [shops.adminId],
+  }),
+  games: many(games),
+  transactions: many(transactions),
+}));
+
+export const shopsRelations = relations(shops, ({ one, many }) => ({
+  admin: one(users, {
+    fields: [shops.adminId],
+    references: [users.id],
+  }),
+  employees: many(users),
+  games: many(games),
+  transactions: many(transactions),
+  cartelas: many(cartelas),
+}));
+
+export const gamesRelations = relations(games, ({ one, many }) => ({
+  shop: one(shops, {
+    fields: [games.shopId],
+    references: [shops.id],
+  }),
+  employee: one(users, {
+    fields: [games.employeeId],
+    references: [users.id],
+  }),
+  players: many(gamePlayers),
+  winner: one(gamePlayers, {
+    fields: [games.winnerId],
+    references: [gamePlayers.id],
+  }),
+  transactions: many(transactions),
+}));
+
+export const gamePlayersRelations = relations(gamePlayers, ({ one }) => ({
+  game: one(games, {
+    fields: [gamePlayers.gameId],
+    references: [games.id],
+  }),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  game: one(games, {
+    fields: [transactions.gameId],
+    references: [games.id],
+  }),
+  shop: one(shops, {
+    fields: [transactions.shopId],
+    references: [shops.id],
+  }),
+  employee: one(users, {
+    fields: [transactions.employeeId],
+    references: [users.id],
+  }),
+}));
+
+export const gameHistoryRelations = relations(gameHistory, ({ one }) => ({
+  game: one(games, {
+    fields: [gameHistory.gameId],
+    references: [games.id],
+  }),
+  shop: one(shops, {
+    fields: [gameHistory.shopId],
+    references: [shops.id],
+  }),
+  employee: one(users, {
+    fields: [gameHistory.employeeId],
+    references: [users.id],
+  }),
+}));
+
+export const cartelasRelations = relations(cartelas, ({ one }) => ({
+  shop: one(shops, {
+    fields: [cartelas.shopId],
+    references: [shops.id],
+  }),
+  admin: one(users, {
+    fields: [cartelas.adminId],
+    references: [users.id],
+  }),
+  bookedBy: one(users, {
+    fields: [cartelas.bookedBy],
+    references: [users.id],
+  }),
+  game: one(games, {
+    fields: [cartelas.gameId],
+    references: [games.id],
+  }),
+}));
+
+// Types
+export type User = typeof users.$inferSelect;
+export type Shop = typeof shops.$inferSelect;
+export type Game = typeof games.$inferSelect;
+export type GamePlayer = typeof gamePlayers.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
+export type GameHistory = typeof gameHistory.$inferSelect;
+export type Cartela = typeof cartelas.$inferSelect;
+export type DailyRevenueSummary = typeof dailyRevenueSummary.$inferSelect;
+

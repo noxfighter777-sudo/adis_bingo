@@ -1,0 +1,38 @@
+name: Build and Release BingoMaster
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger build when you push a tag like v1.0.1
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    # Critical for Organization Repos to allow release creation
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Matching modern standards for 2026
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Assets
+        run: npm run build
+
+      - name: Build Server Bundle
+        run: npm run build:server
+
+      - name: Release Web Application
+        run: |
+          echo "Creating web application release..."
+          echo "Build completed successfully"

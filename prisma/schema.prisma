@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  username          String    @unique
+  password          String
+  role              String    @default("employee")
+  name              String
+  email             String?
+  accountNumber     String?   @unique @map("account_number")
+  balance           Float     @default(0)
+  isBlocked         Boolean   @default(false) @map("is_blocked")
+  creditBalance     Float     @default(0) @map("credit_balance")
+  totalRevenue      Float     @default(0) @map("total_revenue")
+  totalGames        Int       @default(0) @map("total_games")
+  totalPlayers      Int       @default(0) @map("total_players")
+  machineId         String?   @map("machine_id")
+  createdAt         DateTime? @map("created_at")
+
+  // Relations
+  games             Game[]
+  transactions      Transaction[]
+  gameHistory       GameHistory[]
+  cartelas          Cartela[]
+  dailyRevenueSummaries DailyRevenueSummary[]
+  bookedCartelas    Cartela[] @relation("BookedBy")
+
+  @@map("users")
+}
+
+model Game {
+  id            Int       @id @default(autoincrement())
+  employeeId    Int       @map("employee_id")
+  status        String
+  prizePool     Float     @default(0) @map("prize_pool")
+  entryFee      Float     @map("entry_fee")
+  calledNumbers String    @default("[]") @map("called_numbers")
+  startedAt     DateTime? @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  isPaused      Boolean   @default(false) @map("is_paused")
+  createdAt     DateTime? @map("created_at")
+
+  // Relations
+  employee      User        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  players       GamePlayer[]
+  transactions  Transaction[]
+  gameHistory   GameHistory[]
+  cartelas      Cartela[]
+
+  @@map("games")
+}
+
+model GamePlayer {
+  id            Int       @id @default(autoincrement())
+  gameId        Int       @map("game_id")
+  playerName    String    @map("player_name")
+  cartelaNumbers String   @map("cartela_numbers")
+  entryFee      Float     @map("entry_fee")
+  isWinner      Boolean   @default(false) @map("is_winner")
+  registeredAt  DateTime? @map("registered_at")
+
+  // Relations
+  game          Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("game_players")
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @map("user_id")
+  gameId      Int?      @map("game_id")
+  amount      Float
+  type        String
+  description String?
+  createdAt   DateTime? @map("created_at")
+
+  // Relations
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game        Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model GameHistory {
+  id        Int       @id @default(autoincrement())
+  gameId    Int?      @map("game_id")
+  userId    Int?      @map("user_id")
+  action    String
+  details   String?
+  createdAt DateTime? @map("created_at")
+
+  // Relations
+  game      Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("game_history")
+}
+
+model UsedRecharge {
+  id        Int       @id @default(autoincrement())
+  nonce     String    @unique
+  signature String
+  amount    Float
+  userId    Int       @map("user_id")
+  machineId String    @map("machine_id")
+  usedAt    DateTime? @default(now()) @map("used_at")
+
+  @@map("used_recharges")
+}
+
+model Cartela {
+  id            Int       @id @default(autoincrement())
+  employeeId    Int       @map("employee_id")
+  cartelaNumber Int       @map("cartela_number")
+  cardNo        Int       @map("card_no")
+  name          String
+  pattern       String
+  isHardcoded   Boolean   @default(false) @map("is_hardcoded")
+  isActive      Boolean   @default(true) @map("is_active")
+  isBooked      Boolean   @default(false) @map("is_booked")
+  bookedBy      Int?      @map("booked_by")
+  gameId        Int?      @map("game_id")
+  createdAt     DateTime? @map("created_at")
+  updatedAt     DateTime? @map("updated_at")
+
+  // Relations
+  employee      User  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  bookedByUser  User? @relation("BookedBy", fields: [bookedBy], references: [id], onDelete: SetNull)
+  game          Game? @relation(fields: [gameId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, cartelaNumber])
+  @@map("cartelas")
+}
+
+model DailyRevenueSummary {
+  id                     Int       @id @default(autoincrement())
+  date                   String    @unique
+  employeeId             Int?      @map("employee_id")
+  totalRevenue           Float?    @map("total_revenue")
+  totalGames            Int?      @map("total_games")
+  totalPlayers          Int?      @map("total_players")
+  totalPrizePool       Float?    @map("total_prize_pool")
+  totalEntryFees       Float?    @map("total_entry_fees")
+  totalRechargeAmount  Float?    @map("total_recharge_amount")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  employee              User?     @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@map("daily_revenue_summaries")
+}
+
+model AdminRechargeFile {
+  id            Int       @id @default(autoincrement())
+  username      String
+  accountNumber String    @map("account_number")
+  amount        String
+  filename      String
+  shopId        String?   @map("shop_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("admin_recharge_files")
+}
