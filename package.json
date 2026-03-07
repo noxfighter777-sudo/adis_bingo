@@ -164,7 +164,7 @@
     },
     "files": [
       "dist/**/*",
-      "main.js",
+      "main.cjs",
       "preload.js",
       "prisma/schema.prisma",
       "prisma/migrations/**/*",
@@ -204,6 +204,14 @@
         "from": "public",
         "to": "public",
         "filter": ["**/*.{mp3,wav,png,jpg,jpeg}"]
+      },
+      {
+        "from": "main.cjs",
+        "to": "main.cjs"
+      },
+      {
+        "from": "preload.js",
+        "to": "preload.js"
       }
     ],
     "npmRebuild": false
