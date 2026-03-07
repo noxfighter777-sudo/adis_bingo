@@ -40,13 +40,27 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifacts
+      if: github.event_name == 'release'
       uses: actions/upload-artifact@v4
       with:
-        name: GrandBingo-Desktop-Windows
+        name: GrandBingo-Desktop-Windows-${{ github.run_number }}
         path: release/*.exe
-        retention-days: 7
+        retention-days: 3
         compression-level: 9
         if-no-files-found: error
+
+    - name: Create Release Summary
+      if: always()
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifact Size**: $(ls -lh release/*.exe | awk '{print $5}' || echo 'No .exe file found')" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Download Instructions" >> $GITHUB_STEP_SUMMARY
+        echo "For builds without artifacts due to storage limits, please:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Wait 6-12 hours for storage quota to reset" >> $GITHUB_STEP_SUMMARY
+        echo "2. Or manually build locally using: \`npm run electron:dist\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Release
       if: github.event_name == 'release'

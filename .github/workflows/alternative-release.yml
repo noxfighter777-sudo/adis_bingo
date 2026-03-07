@@ -1,0 +1,70 @@
+name: Alternative Release (Storage Quota Fallback)
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Storage quota issue workaround'
+  schedule:
+    # Run daily at 2 AM UTC to check if storage quota allows upload
+    - cron: '0 2 * * *'
+
+jobs:
+  try-release:
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma client
+      run: npx prisma generate
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Build server
+      run: npm run build:server
+
+    - name: Build Electron app
+      run: npm run electron:dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Try Upload Artifacts
+      continue-on-error: true
+      uses: actions/upload-artifact@v4
+      with:
+        name: GrandBingo-Desktop-Windows-Alt
+        path: release/*.exe
+        retention-days: 1
+        compression-level: 9
+        if-no-files-found: warn
+
+    - name: Create Build Info
+      if: always()
+      run: |
+        echo "## Alternative Build Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Files Created**:" >> $GITHUB_STEP_SUMMARY
+        ls -la release/ >> $GITHUB_STEP_SUMMARY 2>&1 || echo "No release files found" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Manual Build Instructions" >> $GITHUB_STEP_SUMMARY
+        echo "If artifact upload fails due to storage limits:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Clone this repository" >> $GITHUB_STEP_SUMMARY
+        echo "2. Run: \`npm ci && npm run build && npm run build:server && npm run electron:dist\`" >> $GITHUB_STEP_SUMMARY
+        echo "3. Find the .exe file in the \`release/\` directory" >> $GITHUB_STEP_SUMMARY
