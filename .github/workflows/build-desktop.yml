@@ -129,7 +129,7 @@ jobs:
         echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Run Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Repository**: Fira-Tech-Solutions/grand_bingo" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: noxfighter777-sudo/adis_bingo" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
