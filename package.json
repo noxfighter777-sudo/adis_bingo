@@ -165,6 +165,8 @@
     "files": [
       "main.cjs",
       "preload.js",
+      "node_modules/@prisma/**/*",
+      "node_modules/prisma/**/*",
       "dist/**/*",
       "prisma/schema.prisma",
       "prisma/migrations/**/*",
