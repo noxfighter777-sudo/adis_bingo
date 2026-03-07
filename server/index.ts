@@ -34,11 +34,20 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Serve static audio files with proper MIME types (before other routes)
 import path from "path";
-const publicPath = path.resolve(process.cwd(), "public");
+const publicPath = process.env.NODE_ENV === 'production' && process.env.USER_DATA_PATH
+  ? path.join(process.env.USER_DATA_PATH, 'public')
+  : path.resolve(process.cwd(), "public");
+
 app.use(express.static(publicPath, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.mp3')) {
       res.setHeader('Content-Type', 'audio/mpeg');
+    } else if (filePath.endsWith('.wav')) {
+      res.setHeader('Content-Type', 'audio/wav');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
     }
   }
 }));

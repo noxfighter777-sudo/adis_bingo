@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import { adminDb } from './admin-db';
 import { employeeDb } from './employee-db';

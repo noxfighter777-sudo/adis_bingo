@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 import crypto from "crypto";
 import { storage } from "../../storage/prisma-storage";
 import { adminStorage } from "../../storage/admin-storage";

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 import { z } from "zod";
 import { storage } from "../../storage/prisma-storage";
 import { emitBalanceUpdate, emitEvent } from "../services/socket.service";

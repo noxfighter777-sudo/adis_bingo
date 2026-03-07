@@ -72,9 +72,23 @@ if (!gotTheLock) {
     app.whenReady().then(() => {
       protocol.registerFileProtocol('app-resource', (request, callback) => {
         const url = request.url.substr(16); // Remove 'app-resource://' prefix
-        const assetPath = app.isPackaged 
-          ? path.join(process.resourcesPath, 'app.asar', url)
-          : path.join(__dirname, url);
+        let assetPath;
+        
+        if (app.isPackaged) {
+          // In production, check both unpacked and packed locations
+          const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', url);
+          const packedPath = path.join(process.resourcesPath, 'app.asar', url);
+          
+          // Try unpacked first (better for media files), then packed
+          if (fs.existsSync(unpackedPath)) {
+            assetPath = unpackedPath;
+          } else {
+            assetPath = packedPath;
+          }
+        } else {
+          // In development, use regular path
+          assetPath = path.join(__dirname, url);
+        }
         
         callback({ path: assetPath });
       });

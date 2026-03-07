@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { db } from "../server/db";
 import { users, cartelas } from "../shared/schema-simple";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 import { eq, and } from "drizzle-orm";
 
 async function seed() {
