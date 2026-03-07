@@ -32,6 +32,7 @@ jobs:
       run: npm run build
 
     - name: Verify frontend build
+      shell: bash
       run: |
         echo "Checking frontend build files..."
         ls -la dist/public/
@@ -45,6 +46,7 @@ jobs:
       run: npm run build:server
 
     - name: Verify server build
+      shell: bash
       run: |
         echo "Checking server build files..."
         ls -la dist/
@@ -55,6 +57,7 @@ jobs:
         echo "Server build verified successfully!"
 
     - name: Verify all build files
+      shell: bash
       run: |
         echo "=== Build Verification Summary ==="
         echo "Server build: dist/index.js ($(ls -lh dist/index.js | awk '{print $5}')"

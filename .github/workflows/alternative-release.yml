@@ -36,6 +36,7 @@ jobs:
       run: npm run build
 
     - name: Verify frontend build
+      shell: bash
       run: |
         echo "Checking frontend build files..."
         ls -la dist/public/
@@ -49,6 +50,7 @@ jobs:
       run: npm run build:server
 
     - name: Verify server build
+      shell: bash
       run: |
         echo "Checking server build files..."
         ls -la dist/
