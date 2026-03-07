@@ -20,7 +20,7 @@
     "postinstall": "prisma generate",
     "electron": "NODE_ENV=development electron .",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder"
+    "electron:dist": "electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -163,14 +163,7 @@
       "shortcutName": "GrandBingo"
     },
     "files": [
-      "main.cjs",
-      "preload.js",
-      "node_modules/@prisma/**/*",
-      "node_modules/prisma/**/*",
       "dist/**/*",
-      "prisma/schema.prisma",
-      "prisma/migrations/**/*",
-      "public/**/*",
       "!**/node_modules/**/*",
       "!**/*.ts",
       "!**/*.map",
