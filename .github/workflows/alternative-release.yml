@@ -75,6 +75,41 @@ jobs:
         compression-level: 9
         if-no-files-found: warn
 
+    - name: Upload to Transfer.sh (Emergency Bypass)
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo "🚀 EMERGENCY BYPASS: Uploading to Transfer.sh (14-day storage)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Find the .exe file
+        EXE_FILE=$(find release/ -name "*.exe" | head -1)
+        
+        if [ -f "$EXE_FILE" ]; then
+          echo "Found executable: $EXE_FILE" >> $GITHUB_STEP_SUMMARY
+          echo "File size: $(ls -lh "$EXE_FILE" | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Upload to transfer.sh
+          echo "Uploading to Transfer.sh..." >> $GITHUB_STEP_SUMMARY
+          TRANSFER_URL=$(curl --upload-file "$EXE_FILE" https://transfer.sh/$(basename "$EXE_FILE") 2>/dev/null)
+          
+          if [ ! -z "$TRANSFER_URL" ]; then
+            echo "✅ Upload successful!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🎯 DIRECT DOWNLOAD LINK" >> $GITHUB_STEP_SUMMARY
+            echo "**Download URL (valid for 14 days):**" >> $GITHUB_STEP_SUMMARY
+            echo "$TRANSFER_URL" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Click the link above to download immediately!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Transfer.sh upload failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "❌ No .exe file found in release directory" >> $GITHUB_STEP_SUMMARY
+        fi
+
     - name: Create Build Info
       if: always()
       shell: bash

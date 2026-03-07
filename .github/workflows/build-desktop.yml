@@ -82,6 +82,44 @@ jobs:
         compression-level: 0
         if-no-files-found: warn
 
+    - name: Upload to Transfer.sh (Emergency Bypass)
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo "🚀 EMERGENCY BYPASS: Uploading to Transfer.sh (14-day storage)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Find the .exe file
+        EXE_FILE=$(find release/ -name "*.exe" | head -1)
+        
+        if [ -f "$EXE_FILE" ]; then
+          echo "Found executable: $EXE_FILE" >> $GITHUB_STEP_SUMMARY
+          echo "File size: $(ls -lh "$EXE_FILE" | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Upload to transfer.sh
+          echo "Uploading to Transfer.sh..." >> $GITHUB_STEP_SUMMARY
+          TRANSFER_URL=$(curl --upload-file "$EXE_FILE" https://transfer.sh/$(basename "$EXE_FILE") 2>/dev/null)
+          
+          if [ ! -z "$TRANSFER_URL" ]; then
+            echo "✅ Upload successful!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🎯 DIRECT DOWNLOAD LINK" >> $GITHUB_STEP_SUMMARY
+            echo "**Download URL (valid for 14 days):**" >> $GITHUB_STEP_SUMMARY
+            echo "$TRANSFER_URL" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Click the link above to download immediately!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Also save to workflow output for easy access
+            echo "transfer_url=$TRANSFER_URL" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Transfer.sh upload failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "❌ No .exe file found in release directory" >> $GITHUB_STEP_SUMMARY
+        fi
+
     - name: Create Release Summary
       if: always()
       shell: bash
@@ -110,13 +148,19 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         
         echo "### 🔥 STORAGE QUOTA SOLUTIONS" >> $GITHUB_STEP_SUMMARY
-        echo "**Storage quota is exceeded - here are multiple ways to get the build:**" >> $GITHUB_STEP_SUMMARY
+        echo "**GitHub storage quota exceeded - but we have bypass solutions:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### 1️⃣ ALTERNATIVE WORKFLOW" >> $GITHUB_STEP_SUMMARY
+        echo "#### 🚀 1️⃣ TRANSFER.SH BYPASS (RECOMMENDED)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Direct Download**: Check above for Transfer.sh link (14-day validity)" >> $GITHUB_STEP_SUMMARY
+        echo "- **No GitHub Storage**: Completely bypasses GitHub quota limits" >> $GITHUB_STEP_SUMMARY
+        echo "- **Immediate Access**: Click the link and download instantly" >> $GITHUB_STEP_SUMMARY
+        echo "- **No Login Required**: Public download, no authentication needed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 2️⃣ ALTERNATIVE WORKFLOW" >> $GITHUB_STEP_SUMMARY
         echo "- Go to: **Actions** tab → **Alternative Release** → **Run workflow**" >> $GITHUB_STEP_SUMMARY
         echo "- This uploads with different naming to avoid quota conflicts" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### 2️⃣ MANUAL BUILD (Recommended)" >> $GITHUB_STEP_SUMMARY
+        echo "#### 3️⃣ MANUAL BUILD" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo '# Clone the repository' >> $GITHUB_STEP_SUMMARY
         echo 'git clone https://github.com/Fira-Tech-Solutions/grand_bingo.git' >> $GITHUB_STEP_SUMMARY
@@ -133,13 +177,13 @@ jobs:
         echo 'ls -la release/*.exe' >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### 3️⃣ WAIT AND RETRY" >> $GITHUB_STEP_SUMMARY
+        echo "#### 4️⃣ WAIT AND RETRY" >> $GITHUB_STEP_SUMMARY
         echo "- GitHub storage quota resets every 6-12 hours" >> $GITHUB_STEP_SUMMARY
         echo "- Try the main workflow again later when quota resets" >> $GITHUB_STEP_SUMMARY
         echo "- Check the **Actions** tab for successful uploads" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "#### 4️⃣ DIRECT DOWNLOAD" >> $GITHUB_STEP_SUMMARY
-        echo "- When artifacts upload successfully, they will appear in the **Actions** tab" >> $GITHUB_STEP_SUMMARY
+        echo "#### 5️⃣ DIRECT DOWNLOAD" >> $GITHUB_STEP_SUMMARY
+        echo "- When GitHub artifacts upload successfully, they will appear in the **Actions** tab" >> $GITHUB_STEP_SUMMARY
         echo "- Look for: \`GrandBingo-Desktop-${{ github.run_number }}\` artifact" >> $GITHUB_STEP_SUMMARY
         echo "- Download size will be minimal (no compression, 0-day retention)" >> $GITHUB_STEP_SUMMARY
 
