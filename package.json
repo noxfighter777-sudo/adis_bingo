@@ -20,7 +20,7 @@
     "postinstall": "prisma generate",
     "electron": "NODE_ENV=development electron .",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
+    "electron:dist": "npm run build && npm run build:server && cp main.cjs dist/main.cjs && electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
