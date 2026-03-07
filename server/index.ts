@@ -3,58 +3,18 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import session from "express-session";
-import SqliteStore from "better-sqlite3-session-store";
-import Database from "better-sqlite3";
+import { connect } from "connect-sqlite3";
 import path from "path";
 import { registerRoutes } from "./src/routes";
 import { setupVite, serveStatic, log } from "./src/lib/vite";
 import "./src/lib/console-override";
 
 // SQLite database for session store
-const sqlite = new Database(process.env.SESSION_DB_PATH || path.join(process.cwd(), 'data', 'sessions.db'));
-
-const app = express();
-
-// Add CORS headers for proper browser communication
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,Pragma,Set-Cookie,Cookie');
-  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// Serve static audio files with proper MIME types (before other routes)
-import path from "path";
-const publicPath = process.env.NODE_ENV === 'production' && process.env.USER_DATA_PATH
-  ? path.join(process.env.USER_DATA_PATH, 'public')
-  : path.resolve(process.cwd(), "public");
-
-app.use(express.static(publicPath, {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.mp3')) {
-      res.setHeader('Content-Type', 'audio/mpeg');
-    } else if (filePath.endsWith('.wav')) {
-      res.setHeader('Content-Type', 'audio/wav');
-    } else if (filePath.endsWith('.png')) {
-      res.setHeader('Content-Type', 'image/png');
-    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-      res.setHeader('Content-Type', 'image/jpeg');
-    }
-  }
-}));
+const sqlite = connect(process.env.SESSION_DB_PATH || path.join(process.cwd(), 'data', 'sessions.db'));
 
 // Configure session middleware with persistent SQLite store
 app.use(session({
-  store: new (SqliteStore(session))({
+  store: new (session.SqliteStore)({
     client: sqlite,
     expired: { clear: true, intervalMs: 900000 }
   }),
