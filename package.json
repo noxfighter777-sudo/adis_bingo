@@ -1,8 +1,11 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Grand Bingo Desktop Application - Professional Bingo Management System",
+  "main": "main.js",
+  "author": "Fira Tech Solutions",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development tsx --env-file=.env server/index.ts",
     "build": "vite build",
@@ -127,8 +130,7 @@
   "optionalDependencies": {
     "@rollup/rollup-darwin-x64": "^4.59.0",
     "@rollup/rollup-linux-x64-gnu": "^4.59.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
-    "bufferutil": "^4.0.8"
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
   },
   "build": {
     "appId": "com.firatech.bingomaster",
@@ -153,10 +155,8 @@
       "dist/**/*",
       "main.js",
       "preload.js",
-      "package.json",
-      "!data/license.db*",
-      "!keys/private_key.pem",
-      "**/*.{mp3,wav,png,jpg,jpeg}"
+      "prisma/**/*",
+      "public/**/*"
     ],
     "asar": true,
     "asarUnpack": [
@@ -173,7 +173,8 @@
         "from": "public",
         "to": "public"
       }
-    ]
+    ],
+    "npmRebuild": false
   },
   "main": "main.js"
 }
