@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import bcrypt from 'bcryptjs';
 import * as os from "os";
 import { storage } from "../../storage/prisma-storage";
-import { adminStorage } from "../../storage/admin-storage";
+import { AdminStorage } from "../../storage/admin-storage";
 import UltimateMachineIdGenerator from "../lib/ultimate-machine-id";
 import { encryptData, decryptData, signBalance, verifyBalance, generateKeyPair } from "../lib/crypto";
 
@@ -28,7 +28,7 @@ export async function login(req: Request, res: Response) {
             console.log(`User not found: ${username}`);
 
             // Check if user exists in admin tracking database
-            const adminUser = await adminStorage.getAdminUserByUsername(username);
+            const adminUser = await AdminStorage.getAdminUserByUsername(username);
             if (adminUser && adminUser.username === 'admin') {
                 console.log(`Found admin user in tracking database:`, { username: adminUser.username, password: adminUser.password });
 
@@ -186,7 +186,7 @@ export async function getCurrentUser(req: Request, res: Response) {
         let user;
 
         if (isAdmin) {
-            const adminUser = adminStorage.getAdminUserById(userId);
+            const adminUser = AdminStorage.getAdminUserById(userId);
             if (adminUser) {
                 const machineId = await ultimateGenerator.getUserMachineId(adminUser.id || userId, adminUser.username);
                 user = {

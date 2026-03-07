@@ -142,9 +142,8 @@ class SecureLogger {
       case 'INFO': return 'green';
       case 'WARN': return 'orange';
       case 'ERROR': return 'red';
-      case 'SECURITY': return 'magenta';
-      case 'AUDIT': return 'cyan';
       case 'SECURITY': return 'red';
+      case 'AUDIT': return 'cyan';
       default: return 'white';
     }
   }

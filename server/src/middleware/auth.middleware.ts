@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "../../storage/prisma-storage";
-import { adminStorage } from "../../storage/admin-storage";
+import { AdminStorage } from "../../storage/admin-storage";
 
 /**
  * Middleware to require authentication.

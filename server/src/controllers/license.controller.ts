@@ -3,16 +3,6 @@ import type { Request, Response } from "express";
 import * as fs from "fs";
 import * as path from "path";
 import { getHardwareId } from "../lib/hardware-id";
-import {
-    isActivated,
-    setActivation,
-    isTokenUsed,
-    recordToken,
-    getTotalRecharged,
-    isRechargeUsed,
-    recordUsedRecharge,
-    generateFileSignature,
-} from "../../../scripts/license-db";
 import { storage } from "../../storage/prisma-storage";
 import { decryptData, verifyBalance, signBalance, encryptData } from "../lib/crypto";
 import secureConfig from "../config/secure-config";

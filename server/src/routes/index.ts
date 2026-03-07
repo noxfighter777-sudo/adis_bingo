@@ -4,7 +4,6 @@ import express from "express";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "../../storage/prisma-storage";
-import { isActivated } from "../../../scripts/license-db";
 
 // Import route modules
 import { authRoutes } from "./auth.routes";
@@ -35,12 +34,19 @@ export async function registerRoutes(app: Express) {
                    req.path === "/activate" ||
                    req.path.startsWith("/auth");
     if (allowed) return next();
-    if (!isActivated()) {
-      return res.status(403).json({
-        message: "Application not activated. Please upload a valid activation file first."
-      });
-    }
-    next();
+    
+    // Check activation using Prisma storage instead of script import
+    storage.getSystemConfig().then(config => {
+      if (!config?.isActivated) {
+        return res.status(403).json({
+          message: "Application not activated. Please upload a valid activation file first."
+        });
+      }
+      next();
+    }).catch(() => {
+      // If storage fails, allow access (graceful degradation)
+      next();
+    });
   });
 
   // ─── MOUNT MODULAR ROUTES ─────────────────────────────────────────
