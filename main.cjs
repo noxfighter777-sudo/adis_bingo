@@ -16,6 +16,20 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+// Register custom protocol schemes BEFORE app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app-resource',
+    privileges: {
+      standard: true,
+      secure: true,
+      allowServiceWorkers: true,
+      supportFetchAPI: true,
+      corsEnabled: true
+    }
+  }
+]);
+
 // Single instance lock
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -69,19 +83,6 @@ if (!gotTheLock) {
 
   // Register custom protocol for secure asset loading with ASAR awareness
   function registerCustomProtocol() {
-    protocol.registerSchemesAsPrivileged([
-      {
-        scheme: 'app-resource',
-        privileges: {
-          standard: true,
-          secure: true,
-          allowServiceWorkers: true,
-          supportFetchAPI: true,
-          corsEnabled: true
-        }
-      }
-    ]);
-
     app.whenReady().then(() => {
       protocol.registerFileProtocol('app-resource', (request, callback) => {
         const url = request.url.substr(16); // Remove 'app-resource://' prefix
