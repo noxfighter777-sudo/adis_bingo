@@ -21,15 +21,27 @@ if (app.isPackaged) {
   possiblePaths.push('node-machine-id', path.join(__dirname, 'node_modules/node-machine-id'));
 }
 
-// Try each possible path
+// Check if files exist before requiring
+console.log('Checking for node-machine-id module...');
 for (const modulePath of possiblePaths) {
+  const checkPath = modulePath === 'node-machine-id' ? 
+    path.join(__dirname, 'node_modules/node-machine-id') : modulePath;
+  
   try {
-    machineId = require(modulePath).machineId;
-    console.log('Successfully loaded node-machine-id from:', modulePath);
-    break;
+    if (fsSync.existsSync(checkPath)) {
+      console.log('Found module at:', checkPath);
+      try {
+        machineId = require(modulePath).machineId;
+        console.log('Successfully loaded node-machine-id from:', modulePath);
+        break;
+      } catch (requireError) {
+        console.log('Found module but require failed:', checkPath, requireError.message);
+      }
+    } else {
+      console.log('Module not found at:', checkPath);
+    }
   } catch (error) {
-    // Continue to next path
-    continue;
+    console.log('Error checking path:', checkPath, error.message);
   }
 }
 
@@ -39,6 +51,17 @@ if (!machineId) {
   possiblePaths.forEach(p => console.error('  -', p));
   console.error('App path:', process.resourcesPath);
   console.error('Main path:', __dirname);
+  
+  // List what's actually available
+  try {
+    const nodeModulesPath = path.join(__dirname, 'node_modules');
+    if (fsSync.existsSync(nodeModulesPath)) {
+      console.log('Available node_modules:', fsSync.readdirSync(nodeModulesPath).slice(0, 10));
+    }
+  } catch (e) {
+    console.log('Could not list node_modules:', e.message);
+  }
+  
   process.exit(1);
 }
 
