@@ -6,19 +6,39 @@ const fsSync = require('fs');
 
 // Mandatory: node-machine-id must be available
 let machineId;
-try {
-  // Try different require paths for ASAR vs non-ASAR
-  if (app.isPackaged) {
-    machineId = require(__dirname + '/node_modules/node-machine-id').machineId;
-  } else {
-    machineId = require('node-machine-id').machineId;
+const possiblePaths = [];
+
+if (app.isPackaged) {
+  // Try multiple possible locations in packaged app
+  possiblePaths.push(
+    path.join(process.resourcesPath, 'node_modules/node-machine-id'),
+    path.join(__dirname, 'node_modules/node-machine-id'),
+    path.join(path.dirname(__dirname), 'node_modules/node-machine-id'),
+    path.join(process.resourcesPath, 'app', 'node_modules/node-machine-id'),
+    'node-machine-id'
+  );
+} else {
+  possiblePaths.push('node-machine-id', path.join(__dirname, 'node_modules/node-machine-id'));
+}
+
+// Try each possible path
+for (const modulePath of possiblePaths) {
+  try {
+    machineId = require(modulePath).machineId;
+    console.log('Successfully loaded node-machine-id from:', modulePath);
+    break;
+  } catch (error) {
+    // Continue to next path
+    continue;
   }
-} catch (error) {
+}
+
+if (!machineId) {
   console.error('FATAL: node-machine-id module is required but not found');
-  console.error('Error details:', error.message);
   console.error('Require paths attempted:');
-  console.error('  - node-machine-id');
-  console.error('  -', __dirname + '/node_modules/node-machine-id');
+  possiblePaths.forEach(p => console.error('  -', p));
+  console.error('App path:', process.resourcesPath);
+  console.error('Main path:', __dirname);
   process.exit(1);
 }
 
