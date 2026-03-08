@@ -170,6 +170,9 @@
       "main.cjs",
       "package.json",
       "node_modules/node-machine-id/**/*",
+      "node_modules/machine-id/**/*",
+      "node_modules/unique-string/**/*",
+      "node_modules/randombytes/**/*",
       "!**/node_modules/**/*",
       "!**/*.ts",
       "!**/*.map",
@@ -187,7 +190,7 @@
       "!**/server/src/**/*",
       "!**/scripts/**/*"
     ],
-    "asar": true,
+    "asar": false,
     "extraResources": [
       "resources/**/*"
     ]

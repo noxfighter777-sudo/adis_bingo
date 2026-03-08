@@ -7,10 +7,18 @@ const fsSync = require('fs');
 // Mandatory: node-machine-id must be available
 let machineId;
 try {
-  machineId = require('node-machine-id').machineId;
+  // Try different require paths for ASAR vs non-ASAR
+  if (app.isPackaged) {
+    machineId = require(__dirname + '/node_modules/node-machine-id').machineId;
+  } else {
+    machineId = require('node-machine-id').machineId;
+  }
 } catch (error) {
   console.error('FATAL: node-machine-id module is required but not found');
-  console.error('Please ensure node-machine-id is properly installed and bundled');
+  console.error('Error details:', error.message);
+  console.error('Require paths attempted:');
+  console.error('  - node-machine-id');
+  console.error('  -', __dirname + '/node_modules/node-machine-id');
   process.exit(1);
 }
 
