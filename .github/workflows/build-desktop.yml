@@ -2,9 +2,9 @@ name: Build Desktop Application
 
 on:
   push:
-    branches: [ main ]
+    branches: [ new-exe ]
   pull_request:
-    branches: [ main ]
+    branches: [ new-exe ]
   release:
     types: [ published ]
 
