@@ -31,6 +31,12 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Pre-build Cleanup
+      shell: powershell
+      run: |
+        if (Test-Path release) { Remove-Item -Recurse -Force release }
+        if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+
     - name: Generate Prisma client
       run: npx prisma generate
 
@@ -66,6 +72,8 @@ jobs:
       run: npm run electron:dist
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NODE_OPTIONS: "--max-old-space-size=4096"
+        PYTHON: python3
 
     - name: Try Upload Artifacts
       continue-on-error: true
