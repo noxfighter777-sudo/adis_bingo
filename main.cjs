@@ -124,7 +124,11 @@ if (!gotTheLock) {
     process.env.SESSION_DB_PATH = path.join(userDataPath, 'sessions.db');
 
     // Start Express server in separate process
-    serverProcess = fork(path.join(__dirname, 'server/index.js'), {
+    const serverPath = app.isPackaged 
+      ? path.join(process.resourcesPath, 'app.asar', 'dist', 'index.js')
+      : path.join(__dirname, 'dist', 'index.js');
+    
+    serverProcess = fork(serverPath, {
       silent: false,
       env: {
         ...process.env,
