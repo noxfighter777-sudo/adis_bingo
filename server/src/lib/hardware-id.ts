@@ -1,45 +1,33 @@
 /**
- * Hardware ID Generator - Serverless Compatible Version
- * Uses simple browser fingerprinting for Vercel deployment
+ * Hardware ID Generator - Native Module Version
+ * Uses node-machine-id for desktop applications
  */
+
+import { machineId } from 'node-machine-id';
 
 let cachedMachineId: string | null = null;
 
 /**
- * Generate a stable machine ID for serverless environments
+ * Generate a stable machine ID using native module
  */
 export async function getHardwareId(): Promise<string> {
   if (cachedMachineId) {
     return cachedMachineId;
   }
 
-  // For serverless environments, create a simple but stable ID
-  // This avoids complex hardware detection that fails in serverless
-  const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : 
-    process.env.USER_AGENT || 'serverless-environment';
-  
-  // Create a simple hash from available environment variables
-  const envString = [
-    process.env.VERCEL_URL || 'localhost',
-    process.env.NODE_ENV || 'production',
-    userAgent
-  ].join('|');
-
-  // Simple hash function
-  let hash = 0;
-  for (let i = 0; i < envString.length; i++) {
-    const char = envString.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-    hash = Math.abs(hash);
+  try {
+    // Use the native node-machine-id module
+    const id = await machineId();
+    cachedMachineId = `NATIVE_${id}`;
+    return cachedMachineId;
+  } catch (error) {
+    console.error('Failed to get native machine ID:', error);
+    throw new Error('Machine ID is required for application to function');
   }
-
-  cachedMachineId = `SERVERLESS_${hash.toString(16).padStart(8, '0').toUpperCase()}`;
-  return cachedMachineId;
 }
 
 /**
- * Verify machine ID (always returns true for serverless)
+ * Verify machine ID using native module
  */
 export async function verifyMachineId(storedId: string): Promise<boolean> {
   const currentId = await getHardwareId();
@@ -47,8 +35,8 @@ export async function verifyMachineId(storedId: string): Promise<boolean> {
 }
 
 /**
- * Check if hardware has changed (always false for serverless)
+ * Check if hardware has changed (always false for desktop)
  */
 export async function checkHardwareChange(): Promise<boolean> {
-  return false; // Serverless environments don't have hardware changes
+  return false; // Desktop environments don't have hardware changes
 }

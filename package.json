@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx --env-file=.env server/index.ts",
     "build": "vite build",
-    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --external:dotenv --external:prisma --external:@prisma/client",
+    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --external:dotenv --external:prisma --external:@prisma/client --external:node-machine-id",
     "start": "NODE_ENV=production node dist/index.js",
     "start:web": "NODE_ENV=production tsx --env-file=.env server/index.ts",
     "check": "tsc",
@@ -17,7 +17,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "vercel-build": "prisma generate && vite build",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && electron-builder install-app-deps",
     "electron": "NODE_ENV=development electron .",
     "electron:pack": "electron-builder --dir",
     "electron:dist": "npm run build && npm run build:server && copy main.cjs dist\\main.cjs && if not exist dist\\node_modules mkdir dist\\node_modules && xcopy /e /i node_modules\\dotenv dist\\node_modules\\dotenv && electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
@@ -192,6 +192,9 @@
       "!**/scripts/**/*"
     ],
     "asar": false,
+    "asarUnpack": [
+      "**/node-machine-id/**/*"
+    ],
     "extraResources": [
       "resources/**/*"
     ]
