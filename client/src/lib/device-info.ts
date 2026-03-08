@@ -98,42 +98,30 @@ function getBrowserMachineIdSync(): string {
 
 /**
  * Electron-specific machine ID implementation
- * TODO: Replace with actual native implementation
+ * Uses async/await pattern for robust IPC communication
  */
 async function getElectronMachineId(): Promise<string> {
-  // TODO: This is where the actual native node-machine-id call will go
-  // For now, we'll use a placeholder that simulates hardware binding
-  
-  // In actual Electron implementation, this would be:
-  // const machineId = await window.electronAPI.getMachineId();
-  // return machineId;
-  
-  // Placeholder implementation
-  const electronMachineId = getElectronMachineIdSync();
-  return electronMachineId;
+  try {
+    // Use the proper async API from preload script
+    const machineId = await window.electronAPI?.getMachineId();
+    if (machineId) {
+      return machineId;
+    }
+    
+    // Fallback to browser method if API not available
+    console.warn('Electron machine ID API not available, falling back to browser method');
+    return getBrowserMachineId();
+  } catch (error) {
+    console.warn('Failed to get Electron machine ID, falling back to browser method:', error);
+    return getBrowserMachineId();
+  }
 }
 
 function getElectronMachineIdSync(): string {
-  // TODO: This is where the actual native node-machine-id call will go
-  // For now, we'll use a placeholder that simulates hardware binding
-  
-  // In actual Electron implementation, this would be:
-  // const machineId = window.electronAPI.getMachineIdSync();
-  // return machineId;
-  
-  // Placeholder implementation - simulate hardware-bound ID
-  // In production, this would be the actual hardware ID from node-machine-id
-  const userAgent = navigator.userAgent;
-  const platform = navigator.platform;
-  const language = navigator.language;
-  
-  // Create a pseudo-unique ID based on available browser info
-  // This is just for development - in production this will be replaced
-  // with actual hardware ID from node-machine-id
-  const baseString = `${platform}-${language}-${userAgent.slice(-10)}`;
-  const hash = simpleHash(baseString);
-  
-  return `ELECTRON-${hash}`;
+  // For synchronous calls, we'll use a cached value or fallback
+  // In production, this should be avoided in favor of async version
+  console.warn('Sync version of getElectronMachineId is deprecated, use async version');
+  return getBrowserMachineIdSync();
 }
 
 /**
@@ -188,7 +176,7 @@ export function getDeviceInfo(): {
 } {
   const isElectron = typeof window !== 'undefined' && 
     (window.process?.versions?.electron || 
-     window.electronAPI || 
+     !!window.electronAPI || 
      navigator.userAgent.toLowerCase().indexOf('electron') > -1);
   
   const isDevelopment = process?.env?.NODE_ENV === 'development' || 
@@ -207,9 +195,9 @@ export function getDeviceInfo(): {
  */
 export function supportsNativeMachineId(): boolean {
   const isElectron = typeof window !== 'undefined' && 
-    (window.process?.versions?.electron || 
-     window.electronAPI || 
+    (!!window.process?.versions?.electron || 
+     !!window.electronAPI || 
      navigator.userAgent.toLowerCase().indexOf('electron') > -1);
   
-  return isElectron;
+  return !!isElectron;
 }

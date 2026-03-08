@@ -1,19 +1,51 @@
 const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { fork } = require('child_process');
-const fs = require('fs');
+const fs = require('fs').promises;
+const fsSync = require('fs');
+const { machineId } = require('node-machine-id');
 
-// Global error handling
+// Professional Pathing Logic
+const isPackaged = app.isPackaged;
+const assetPath = isPackaged 
+  ? path.join(process.resourcesPath, 'resources') 
+  : path.join(__dirname, 'resources');
+
+// Global error handling with robust logging
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  // Prevent ugly error popup
+  
+  // Log to file if possible
+  try {
+    const userDataPath = app.getPath('userData');
+    const logPath = path.join(userDataPath, 'error.log');
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] UNCAUGHT EXCEPTION: ${error.stack || error.message}\n`;
+    fsSync.appendFileSync(logPath, logMessage);
+  } catch (logError) {
+    console.error('Failed to write error log:', logError);
+  }
+  
+  // Prevent ugly error popup and exit gracefully
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Prevent ugly error popup
-  process.exit(1);
+  
+  // Log to file if possible
+  try {
+    const userDataPath = app.getPath('userData');
+    const logPath = path.join(userDataPath, 'error.log');
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] UNHANDLED REJECTION: ${reason}\nPromise: ${promise}\n`;
+    fsSync.appendFileSync(logPath, logMessage);
+  } catch (logError) {
+    console.error('Failed to write error log:', logError);
+  }
+  
+  // Don't exit process for unhandled rejections, but log them
+  // This allows the app to continue running while logging the error
 });
 
 // Register custom protocol schemes BEFORE app is ready
@@ -29,6 +61,62 @@ protocol.registerSchemesAsPrivileged([
     }
   }
 ]);
+
+// IPC Handlers for secure communication
+ipcMain.handle('get-user-data-path', () => {
+  return app.getPath('userData');
+});
+
+ipcMain.handle('get-machine-id', async () => {
+  try {
+    return await machineId();
+  } catch (error) {
+    console.error('Failed to get machine ID:', error);
+    // Fallback to a generated ID
+    return `FALLBACK-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+});
+
+ipcMain.handle('read-file', async (event, filePath) => {
+  try {
+    // Security: Validate file path to prevent directory traversal
+    const normalizedPath = path.normalize(filePath);
+    if (normalizedPath.includes('..') || normalizedPath.includes('~')) {
+      throw new Error('Invalid file path');
+    }
+    
+    return await fs.readFile(normalizedPath, 'utf8');
+  } catch (error) {
+    console.error('Failed to read file:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('write-file', async (event, filePath, data) => {
+  try {
+    // Security: Validate file path to prevent directory traversal
+    const normalizedPath = path.normalize(filePath);
+    if (normalizedPath.includes('..') || normalizedPath.includes('~')) {
+      throw new Error('Invalid file path');
+    }
+    
+    // Ensure directory exists
+    const dir = path.dirname(normalizedPath);
+    await fs.mkdir(dir, { recursive: true });
+    
+    await fs.writeFile(normalizedPath, data, 'utf8');
+  } catch (error) {
+    console.error('Failed to write file:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('db-operation', async (event, operation, ...args) => {
+  // This would integrate with your database operations
+  // For now, return a placeholder
+  console.log('DB Operation:', operation, args);
+  return { success: true, operation, args };
+});
 
 // Single instance lock
 const gotTheLock = app.requestSingleInstanceLock();
@@ -49,7 +137,7 @@ if (!gotTheLock) {
         enableRemoteModule: false,
         preload: path.join(__dirname, 'preload.js')
       },
-      icon: path.join(__dirname, 'client/public/go_bingo.png'),
+      icon: path.join(assetPath, 'images/go_bingo.png'),
       show: false
     });
 
@@ -119,8 +207,9 @@ if (!gotTheLock) {
     }
 
     // Set environment variables for database paths
+    const dbPath = path.join(app.getPath('userData'), 'bingo.db');
     process.env.USER_DATA_PATH = userDataPath;
-    process.env.PRISMA_DATABASE_URL = `file:${path.join(userDataPath, 'bingo.db')}`;
+    process.env.PRISMA_DATABASE_URL = `file:${dbPath}`;
     process.env.SESSION_DB_PATH = path.join(userDataPath, 'sessions.db');
 
     // Start Express server in separate process

@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('get-user-data-path');
   },
 
+  // Get machine ID (async for security)
+  getMachineId: () => {
+    return ipcRenderer.invoke('get-machine-id');
+  },
+
   // App info
   getVersion: () => {
     return process.env.npm_package_version || '1.0.0';
@@ -20,6 +25,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Platform info
   getPlatform: () => {
     return process.platform;
+  },
+
+  // File system operations (async)
+  readFile: (filePath) => {
+    return ipcRenderer.invoke('read-file', filePath);
+  },
+
+  writeFile: (filePath, data) => {
+    return ipcRenderer.invoke('write-file', filePath, data);
+  },
+
+  // Database operations
+  dbOperation: (operation, ...args) => {
+    return ipcRenderer.invoke('db-operation', operation, ...args);
   }
 });
 

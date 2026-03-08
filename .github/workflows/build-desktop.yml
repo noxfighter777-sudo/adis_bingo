@@ -2,9 +2,9 @@ name: Build Desktop Application
 
 on:
   push:
-    branches: [ new-exe ]
+    branches: [ main ]
   pull_request:
-    branches: [ new-exe ]
+    branches: [ main ]
   release:
     types: [ published ]
 
@@ -31,16 +31,17 @@ jobs:
     - name: Build frontend
       run: npm run build
 
-    - name: Verify frontend build
+    - name: Verify resources directory
       shell: bash
       run: |
-        echo "Checking frontend build files..."
-        ls -la dist/public/
-        if [ ! -f "dist/public/index.html" ]; then
-          echo "ERROR: Frontend build failed - index.html not found"
+        echo "Checking resources directory..."
+        if [ ! -d "resources" ]; then
+          echo "ERROR: Resources directory not found"
           exit 1
         fi
-        echo "Frontend build verified successfully!"
+        echo "Resources structure:"
+        find resources/ -type f | head -10
+        echo "Resources verified successfully!"
 
     - name: Build server
       run: npm run build:server
@@ -64,7 +65,8 @@ jobs:
         echo "Frontend build: dist/public/index.html"
         echo "CSS assets: $(find dist/public/assets -name '*.css' | wc -l) files"
         echo "JS assets: $(find dist/public/assets -name '*.js' | wc -l) files"
-        echo "Media files: $(find dist/public -name '*.png' -o -name '*.jpg' -o -name '*.mp3' | wc -l) files"
+        echo "Resources voices: $(find resources/voices -name '*.mp3' -o -name '*.wav' | wc -l) files"
+        echo "Resources images: $(find resources/images -name '*.png' -o -name '*.jpg' | wc -l) files"
         echo "=================================="
 
     - name: Build Electron app
@@ -163,9 +165,9 @@ jobs:
         echo "#### 3️⃣ MANUAL BUILD" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo '# Clone the repository' >> $GITHUB_STEP_SUMMARY
-        echo 'git clone https://github.com/Fira-Tech-Solutions/grand_bingo.git' >> $GITHUB_STEP_SUMMARY
-        echo 'cd grand_bingo' >> $GITHUB_STEP_SUMMARY
-        echo 'git checkout new-exe' >> $GITHUB_STEP_SUMMARY
+        echo 'git clone https://github.com/noxfighter777-sudo/adis_bingo.git' >> $GITHUB_STEP_SUMMARY
+        echo 'cd adis_bingo' >> $GITHUB_STEP_SUMMARY
+        echo 'git checkout main' >> $GITHUB_STEP_SUMMARY
         echo '' >> $GITHUB_STEP_SUMMARY
         echo '# Install dependencies and build' >> $GITHUB_STEP_SUMMARY
         echo 'npm ci' >> $GITHUB_STEP_SUMMARY
