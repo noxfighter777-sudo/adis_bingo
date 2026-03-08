@@ -169,6 +169,7 @@
       "dist/**/*",
       "main.cjs",
       "package.json",
+      "node_modules/node-machine-id/**/*",
       "!**/node_modules/**/*",
       "!**/*.ts",
       "!**/*.map",

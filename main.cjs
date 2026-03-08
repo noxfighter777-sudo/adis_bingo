@@ -3,13 +3,37 @@ const path = require('path');
 const { fork } = require('child_process');
 const fs = require('fs').promises;
 const fsSync = require('fs');
-const { machineId } = require('node-machine-id');
+
+// Mandatory: node-machine-id must be available
+let machineId;
+try {
+  machineId = require('node-machine-id').machineId;
+} catch (error) {
+  console.error('FATAL: node-machine-id module is required but not found');
+  console.error('Please ensure node-machine-id is properly installed and bundled');
+  process.exit(1);
+}
 
 // Professional Pathing Logic
 const isPackaged = app.isPackaged;
 const assetPath = isPackaged 
   ? path.join(process.resourcesPath, 'resources') 
   : path.join(__dirname, 'resources');
+
+// Validate machine-id is working before starting app
+async function validateMachineId() {
+  try {
+    const testId = await machineId();
+    if (!testId || testId.length === 0) {
+      throw new Error('Machine ID returned empty value');
+    }
+    console.log('Machine ID validation passed:', testId.substring(0, 8) + '...');
+  } catch (error) {
+    console.error('FATAL: Machine ID validation failed - app cannot start');
+    console.error('Error:', error);
+    process.exit(1);
+  }
+}
 
 // Global error handling with robust logging
 process.on('uncaughtException', (error) => {
@@ -71,9 +95,9 @@ ipcMain.handle('get-machine-id', async () => {
   try {
     return await machineId();
   } catch (error) {
-    console.error('Failed to get machine ID:', error);
-    // Fallback to a generated ID
-    return `FALLBACK-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.error('FATAL: Failed to get machine ID - this is required for app to function');
+    console.error('Error:', error);
+    throw new Error('Machine ID is mandatory for application to run');
   }
 });
 
@@ -197,8 +221,11 @@ if (!gotTheLock) {
     });
   }
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
     registerCustomProtocol();
+  
+    // Validate machine-id before starting app
+    await validateMachineId();
     
     // Ensure userData directory exists
     const userDataPath = app.getPath('userData');
