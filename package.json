@@ -20,7 +20,7 @@
     "postinstall": "prisma generate",
     "electron": "NODE_ENV=development electron .",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "npm run build && npm run build:server && cp main.cjs dist/main.cjs && mkdir -p dist/node_modules && cp -r node_modules/dotenv dist/node_modules/dotenv && electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
+    "electron:dist": "npm run build && npm run build:server && copy main.cjs dist\\main.cjs && if not exist dist\\node_modules mkdir dist\\node_modules && xcopy /e /i node_modules\\dotenv dist\\node_modules\\dotenv && electron-builder --config.nsis.oneClick=false --config.nsis.allowToChangeInstallationDirectory=true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -135,7 +135,7 @@
   },
   "build": {
     "appId": "com.firatech.bingomaster",
-    "productName": "GrandBingo",
+    "productName": "Adis-Bingo",
     "publish": [
       {
         "provider": "github",
@@ -163,7 +163,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "GrandBingo"
+      "shortcutName": "Adis-Bingo"
     },
     "files": [
       "dist/**/*",
